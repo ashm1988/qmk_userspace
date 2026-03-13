@@ -1,59 +1,49 @@
-# QMK Userspace
+#keyboard #qmk #vial
 
-This is a template repository which allows for an external set of QMK keymaps to be defined and compiled. This is useful for users who want to maintain their own keymaps without having to fork the [main QMK repository](https://github.com/qmk/qmk_firmware). You must still fork the main QMK repository if writing firmware for a *new* keyboard.
+# QMK/VIAL Setup
+- Using `WSL2` on the PC to set up and build `QMK/VIAL` environments. 
+- QMK and VIAL use there own github repositories so need to clone both on the the WSL2 instance.
+	QMK = `/home/amcfarlaa/qmk_firmware` 
+	VIAL = `/home/amcfarlaa/vial-qmk`
+- Use `qmk doctor` to repair missing directory's and submodules 
 
-## Howto configure your build targets
-
-1. Run the normal `qmk setup` procedure if you haven't already done so -- see [QMK Docs](https://docs.qmk.fm/#/newbs) for details.
-1. Fork this repository
-1. Clone your fork to your local machine
-1. Enable userspace in QMK config using `qmk config user.overlay_dir="$(realpath qmk_userspace)"`
-1. Add a new keymap for your board using `qmk new-keymap`
-    * This will create a new keymap in the `keyboards` directory, in the same location that would normally be used in the main QMK repository. For example, if you wanted to add a keymap for the Planck, it will be created in `keyboards/planck/keymaps/<your keymap name>`
-    * You can also create a new keymap using `qmk new-keymap -kb <your_keyboard> -km <your_keymap>`
-    * Alternatively, add your keymap manually by placing it in the location specified above.
-    * `layouts/<layout name>/<your keymap name>/keymap.*` is also supported if you prefer the layout system
-1. Add your keymap(s) to the build by running `qmk userspace-add -kb <your_keyboard> -km <your_keymap>`
-    * This will automatically update your `qmk.json` file
-    * Corresponding `qmk userspace-remove -kb <your_keyboard> -km <your_keymap>` will delete it
-    * Listing the build targets can be done with `qmk userspace-list`
-1. Commit your changes
-
-## Howto build with GitHub
-
-1. In the GitHub Actions tab, enable workflows
-1. Push your changes above to your forked GitHub repository
-1. Look at the GitHub Actions for a new actions run
-1. Wait for the actions run to complete
-1. Inspect the Releases tab on your repository for the latest firmware build
-
-## Howto build locally
-
-1. Run the normal `qmk setup` procedure if you haven't already done so -- see [QMK Docs](https://docs.qmk.fm/#/newbs) for details.
-1. Fork this repository
-1. Clone your fork to your local machine
-1. `cd` into this repository's clone directory
-1. Set global userspace path: `qmk config user.overlay_dir="$(realpath .)"` -- you MUST be located in the cloned userspace location for this to work correctly
-    * This will be automatically detected if you've `cd`ed into your userspace repository, but the above makes your userspace available regardless of your shell location.
-1. Compile normally: `qmk compile -kb your_keyboard -km your_keymap` or `make your_keyboard:your_keymap`
-
-Alternatively, if you configured your build targets above, you can use `qmk userspace-compile` to build all of your userspace targets at once.
-
-## Extra info
-
-If you wish to point GitHub actions to a different repository, a different branch, or even a different keymap name, you can modify `.github/workflows/build_binaries.yml` to suit your needs.
-
-To override the `build` job, you can change the following parameters to use a different QMK repository or branch:
-```
-    with:
-      qmk_repo: qmk/qmk_firmware
-      qmk_ref: master
+## QMK
+[QMK Doco](https://docs.qmk.fm/)
+QMK set up is pretty easy. just need a Linux distro and run `curl -fsSL https://install.qmk.fm | sh` which downloads everything needed and then pulls the qmk repository. 
+- Using [qmk_userspaces](https://docs.qmk.fm/newbs_external_userspace) to house the keymaps external to the repository. 
+	- `~/qmk_userspace`
+	- Basically symlinks the user space folder to the repo so you can upload the configs to [github](https://github.com/ashm1988/qmk_userspace) without the full repository 
+	- Need to set the userspace as the overlay `user.overlay_dir=/home/amcfarlaa/qmk_userspace`
+### Useful setup commands
+```sh
+# Add a new keymap 
+qmk new-keymap -kb gmmk/pro/rev1/ansi -km test
 ```
 
-If you wish to manually manage `qmk_firmware` using git within the userspace repository, you can add `qmk_firmware` as a submodule in the userspace directory instead. GitHub Actions will automatically use the submodule at the pinned revision if it exists, otherwise it will use the default latest revision of `qmk_firmware` from the main repository.
+```sh
+#qmk config commands (e.g qmk config user.keyboard=)
+amcfarlaa@DESKTOP-2T7T6SI:~/qmk_userspace$ qmk config
+#set default keyboard
+user.keyboard=gmmk/pro/rev1/ansi
+#set userspace location
+user.overlay_dir=/home/amcfarlaa/qmk_userspace
+```
 
-This can also be used to control which fork is used, though only upstream `qmk_firmware` will have support for external userspace until other manufacturers update their forks.
+## Vial
+[Vial Doco](https://get.vial.today/manual/first-use.htm)
+For the Vial set up, follow the QMK installation and then clone the [vial-qmk repository](https://github.com/vial-kb/vial-qmk)
+- Need to `cd ~/vial-qmk` changes the `QMK_HOME` to `vial-qmk` directory
+- Works with QMK User spaces
 
-1. (First time only) `git submodule add https://github.com/qmk/qmk_firmware.git`
-1. (To update) `git submodule update --init --recursive`
-1. Commit your changes to your userspace repository
+# GMMK Pro
+- Currently using QMK for the `GMMK PRO` 
+- Compile: `qmk compile -kb gmmk/pro/rev1/ansi -km ashm1988`
+- Flash: Easier to just use the QMK Toolbox. 
+	- Grab the `bin` file the compiler creates and flash with the toolbox
+	- Can use `qmk flash` but not tested it (tested now and works well. Will be the new default)
+
+# kbd67
+- Currently using vial-qmk (lets me change it easy at work)
+- Compile `qmk compile -kb kbdfans/kbd67/mkiirgb/v3 -km ashm1988`
+- Flash: Grab the `bin` file and rename `FLASH.bin`. 
+	- Putting the keyboard into DFU mode is basically a usb drive that you copy the `flash.bin` file to.
